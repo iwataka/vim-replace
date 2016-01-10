@@ -1,0 +1,26 @@
+*vim-replace*	Replace words in multiple files fast and interactively.
+
+CONTENTS					*replace-contents*
+
+1. Introduction					|replace-introduction|
+2. Usage					|replace-usage|
+
+==============================================================================
+INTRODUCTION					*replace-introduction*
+
+This enables you to replace words in multiple files easily and interactively.
+
+------------------------------------------------------------------------------
+USAGE						*replace-usage*
+
+First, you should run :grep to search the word to be replaced and move into
+the quickfix buffer.
+
+Then you can run the following command to replace all the searched words:
+
+	:Replace foo bar
+
+Or you can run this command with visual selection to narrow the words to be
+replaced.
+
+vim:tw=78:sw=4:ts=8:ft=help:norl:noet:
