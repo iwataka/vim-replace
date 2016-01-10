@@ -1,0 +1,92 @@
+Before (Initialization for each execution):
+  if exists('lines') && exists('fixture')
+    call writefile(lines, fixture)
+    if bufexists(fixture)
+      exe 'bwipeout! '.bufnr(fixture)
+    endif
+  endif
+  if exists('dir')
+    exe 'cd '.dir
+  endif
+
+Execute (Prepare for following tests):
+  let dir = expand('<sfile>:p:h').'/fixture'
+  let lines = ['This is a fixture.']
+  let fixture = dir.'/fixture.txt'
+  if !isdirectory(dir)
+    call mkdir(dir)
+  endif
+
+Execute (replace#qflisttype works well):
+  silent noautocmd grep! fixture
+  Assert len(getqflist()) == 1
+  copen
+  Assert replace#qflisttype() == 'quickfix'
+  silent noautocmd lgrep! fixture
+  Assert len(getloclist(0)) == 1
+  lopen
+  Assert replace#qflisttype() == 'location'
+
+Execute (replace#Replace works well for quickfix-list):
+  silent noautocmd grep! fixture
+  Assert len(getqflist()) == 1
+  copen
+  let old = 'fixture'
+  let new = 'fixed asset'
+  call replace#Replace(1, 0, old, new)
+  exe 'edit '.fixture
+  Assert getbufline(bufnr('%'), 1)[0] == substitute(lines[0], old, new, 'g')
+  unlet old
+  unlet new
+
+Execute (replace#Replace works well for location-list):
+  silent noautocmd lgrep! fixture
+  Assert len(getloclist(0)) == 1
+  lopen
+  let old = 'fixture'
+  let new = 'fixed asset'
+  call replace#Replace(1, 0, old, new)
+  exe 'edit '.fixture
+  Assert getbufline(bufnr('%'), 1)[0] == substitute(lines[0], old, new, 'g')
+  unlet old
+  unlet new
+
+Execute (replace#Replace fails for modified buffers):
+  silent noautocmd grep! fixture
+  Assert len(getqflist()) == 1
+  exe 'buffer '.fixture
+  call setbufvar(fixture, '&modified', 1)
+  copen
+  AssertThrows call replace#Replace(1, 0, 'fixture', 'fixed asset')
+  Assert getbufline(bufnr(fixture), 1)[0] == lines[0]
+
+Execute (replace#Replace fails for buffers not modifiable):
+  silent noautocmd grep! fixture
+  Assert len(getqflist()) == 1
+  exe 'buffer '.bufnr(fixture)
+  call setbufvar(bufnr(fixture), '&modifiable', 0)
+  copen
+  AssertThrows call replace#Replace(1, 0, 'fixture', 'fixed asset')
+  Assert getbufline(bufnr(fixture), 1)[0] == lines[0]
+
+Execute (replace#Replace fails for buffers not existing any more):
+  silent noautocmd grep! fixture
+  Assert len(getqflist()) == 1
+  call delete(fixture)
+  copen
+  AssertThrows call replace#Replace(1, 0, 'fixture', 'fixed asset')
+
+Execute (replace#Replace fails for buffers changed after grep):
+  silent noautocmd grep! fixture
+  Assert len(getqflist()) == 1
+  exe 'edit '.fixture
+  normal! gg^ciwthis
+  write
+  copen
+  AssertThrows call replace#Replace(1, 0, 'fixture', 'fixed asset')
+  Assert getbufline(bufnr(fixture), 1)[0] == lines[0]
+
+Execute (Clean up for preceding tests):
+  unlet dir
+  unlet lines
+  unlet fixture

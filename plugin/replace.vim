@@ -5,6 +5,6 @@ let g:loaded_replace = 1
 
 aug replace
   au!
-  au FileType qf com! -buffer -nargs=+ -range=%
-        \ Replace call replace#Replace(<line1>, <line2>, <f-args>)
+  au FileType qf com! -buffer -range=%
+        \ Replace call replace#ReplaceWithPrompt(<line1>, <line2>)
 aug END

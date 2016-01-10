@@ -1,24 +1,30 @@
 let s:save_cpo = &cpoptions
 set cpoptions&vim
 
+fu! replace#ReplaceWithPrompt(line1, line2) abort
+  let old = input("Old word? ")
+  let new = input("New word? ")
+  call replace#Replace(a:line1, a:line2, old, new)
+endfu
+
 fu! replace#Replace(line1, line2, old, new) abort
-  call s:replace(a:line1, a:line2, s:qflisttype(), a:old, a:new)
+  call s:replace(a:line1, a:line2, replace#qflisttype(), a:old, a:new)
 endfu
 
 " b:qflisttype is relatively new feature to distinguish quickfix from location.
-fu! s:qflisttype() abort
+fu! replace#qflisttype() abort
   if exists('b:qflisttype')
     return b:qflisttype
   else
     redir => bufinfo
     silent file
     redir END
-    if bufinfo =~# '^.*[Quickfix List].*$'
+    if bufinfo =~# '^.*\[Quickfix List\].*$'
       return 'quickfix'
-    elseif bufinfo =~# '^.*[Location List].*$' 
+    elseif bufinfo =~# '^.*\[Location List\].*$' 
       return 'location'
     else
-      throw ''
+      throw 'The current buffer is neither quickfix-list nor location-list'
     endif
   endif
 endfu
@@ -41,21 +47,22 @@ fu! s:replace(line1, line2, type, old, new)
       let content = []
       if has_key(files, bufnr)
         let content = files[bufnr]
-      else
+      elseif bufloaded(bufnr)
         if getbufvar(bufnr, '&modified')
           throw 'At least one buffer is modified.'
-        endif
-        if !getbufvar(bufnr, '&modifiable')
+        elseif !getbufvar(bufnr, '&modifiable')
           throw 'At least one buffer is not modifiable.'
-        endif
-        let bufname = bufname(bufnr)
-        if !filereadable(bufname)
+        elseif !filereadable(bufname(bufnr))
           throw 'At least one buffer is not existing file.'
         endif
-        let content = readfile(bufname)
+        let content = getbufline(bufnr, 1, '$')
+      elseif filereadable(bufname(bufnr))
+        let content = readfile(bufname(bufnr))
+      else
+        throw 'At least one buffer does not exist any more.'
       endif
       let line = content[lnum - 1]
-      if d.text !~# '^.*'.line.'.*$'
+      if match(d.text, line) == -1
         throw 'At least one buffer is changed after grep. Run grep again!'
       endif
       let new_line = substitute(line, a:old, a:new, 'g')
@@ -75,6 +82,7 @@ fu! s:replace(line1, line2, type, old, new)
     elseif a:type == 'location'
       call setloclist(0, list)
     endif
+    " NOTE: This leaves no undo history.
     checktime
   finally
     let &ignorecase = _ignorecase

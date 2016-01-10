@@ -16,11 +16,9 @@ USAGE						*replace-usage*
 First, you should run :grep to search the word to be replaced and move into
 the quickfix buffer.
 
-Then you can run the following command to replace all the searched words:
+Then you can run :Replace to replace all the searched lines.
 
-	:Replace foo bar
-
-Or you can run this command with visual selection to narrow the words to be
+Or you can run this command with visual selection to narrow the lines to be
 replaced.
 
 vim:tw=78:sw=4:ts=8:ft=help:norl:noet:
