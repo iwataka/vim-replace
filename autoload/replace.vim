@@ -42,6 +42,10 @@ fu! s:replace(line1, line2, type, old, new)
       let list = getloclist(0)
     endif
     for d in list[(a:line1 - 1):(a:line2 - 1)]
+      " Check if binary or not
+      if match(d.text, '\VBinary file') != -1
+        continue
+      endif
       let bufnr = d.bufnr
       let lnum = d.lnum
       let content = []
@@ -62,7 +66,7 @@ fu! s:replace(line1, line2, type, old, new)
         throw 'At least one buffer does not exist any more.'
       endif
       let line = content[lnum - 1]
-      if match(d.text, line) == -1
+      if match(d.text, '\V'.substitute(line, '\', '\\\\', 'g')) == -1
         throw 'At least one buffer is changed after grep. Run grep again!'
       endif
       let new_line = substitute(line, a:old, a:new, 'g')

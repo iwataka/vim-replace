@@ -11,7 +11,7 @@ Before (Initialization for each execution):
 
 Execute (Prepare for following tests):
   let dir = expand('<sfile>:p:h').'/fixture'
-  let lines = ['This is a fixture.']
+  let lines = ['This is a fixture containing special characters \\\.']
   let fixture = dir.'/fixture.txt'
   if !isdirectory(dir)
     call mkdir(dir)
