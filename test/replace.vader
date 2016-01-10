@@ -1,14 +1,3 @@
-Before (Initialization for each execution):
-  if exists('lines') && exists('fixture')
-    call writefile(lines, fixture)
-    if bufexists(fixture)
-      exe 'bwipeout! '.bufnr(fixture)
-    endif
-  endif
-  if exists('dir')
-    exe 'cd '.dir
-  endif
-
 Execute (Prepare for following tests):
   let dir = expand('<sfile>:p:h').'/fixture'
   let lines = ['This is a fixture containing special characters \\\.']
@@ -16,6 +5,14 @@ Execute (Prepare for following tests):
   if !isdirectory(dir)
     call mkdir(dir)
   endif
+  let cwd = getcwd()
+
+Before (Initialization for each execution):
+  call writefile(lines, fixture)
+  if bufexists(fixture)
+    exe 'bwipeout! '.bufnr(fixture)
+  endif
+  exe 'cd '.dir
 
 Execute (replace#qflisttype works well):
   silent noautocmd grep! fixture
@@ -90,3 +87,5 @@ Execute (Clean up for preceding tests):
   unlet dir
   unlet lines
   unlet fixture
+  exe 'cd '.cwd
+  unlet cwd
