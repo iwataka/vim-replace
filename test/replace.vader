@@ -6,6 +6,8 @@ Execute (Prepare for following tests):
     call mkdir(dir)
   endif
   let cwd = getcwd()
+  let autoread = &autoread
+  set autoread
 
 Before (Initialization for each execution):
   call writefile(lines, fixture)
@@ -89,3 +91,5 @@ Execute (Clean up for preceding tests):
   unlet fixture
   exe 'cd '.cwd
   unlet cwd
+  let &autoread = autoread
+  unlet autoread
