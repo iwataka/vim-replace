@@ -46,8 +46,11 @@ fu! s:replace(line1, line2, type, old, new)
       if match(d.text, '\VBinary file') != -1
         continue
       endif
+      " Check if the grep result is valid.
+      if d.lnum < 1
+        throw "An error occurs by executing grep."
+      endif
       let bufnr = d.bufnr
-      let lnum = d.lnum
       let content = []
       if has_key(files, bufnr)
         let content = files[bufnr]
@@ -65,7 +68,7 @@ fu! s:replace(line1, line2, type, old, new)
       else
         throw 'At least one buffer does not exist any more.'
       endif
-      let line = content[lnum - 1]
+      let line = content[d.lnum - 1]
       if match(d.text, '\V'.substitute(line, '\', '\\\\', 'g')) == -1
         throw 'At least one buffer is changed after grep. Run grep again!'
       endif
