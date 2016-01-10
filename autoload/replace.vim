@@ -82,6 +82,7 @@ fu! s:replace(line1, line2, type, old, new)
     for d in list
       if has_key(files, d.bufnr)
         let d.text = files[d.bufnr][d.lnum - 1]
+        silent exe 'checktime '.d.bufnr
       endif
     endfor
     if a:type == 'quickfix'
@@ -89,8 +90,6 @@ fu! s:replace(line1, line2, type, old, new)
     elseif a:type == 'location'
       call setloclist(0, list)
     endif
-    " NOTE: This leaves no undo history.
-    checktime
   finally
     let &ignorecase = _ignorecase
   endtry
