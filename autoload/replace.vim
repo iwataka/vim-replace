@@ -72,8 +72,9 @@ fu! s:replace(line1, line2, type, old, new)
       if match(d.text, '\V'.substitute(line, '\', '\\\\', 'g')) == -1
         throw 'At least one buffer is changed after grep. Run grep again!'
       endif
-      let new_line = substitute(line, a:old, a:new, 'g')
-      let content[lnum - 1] = new_line
+      let old = '\V'.substitute(a:old, '\', '\\\\', 'g')
+      let new_line = substitute(line, old, a:new, 'g')
+      let content[d.lnum - 1] = new_line
       let files[bufnr] = content
     endfor
     for [bufnr, content] in items(files)

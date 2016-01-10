@@ -85,6 +85,28 @@ Execute (replace#Replace fails for buffers changed after grep):
   AssertThrows call replace#Replace(1, 0, 'fixture', 'fixed asset')
   Assert getbufline(bufnr(fixture), 1)[0] == lines[0]
 
+Execute (replace#Replace can replace special characters):
+  let d = {}
+  let d.lnum = 1
+  exe 'edit '.fixture
+  let d.bufnr = bufnr(fixture)
+  let d.col = 0
+  let d.valid = 1
+  let d.vcol = 0
+  let d.nr = -1
+  let d.type = ''
+  let d.pattern = ''
+  let d.text = 'This is a fixture containing special characters \\\.'
+  call setqflist([d])
+  copen
+  call replace#Replace(1, 0, ' \\\', '')
+  " FIXME: If this bwipeout and edit are not here, the buffer content is
+  " differenct from the original file. I don't know the reason.
+  exe 'bwipeout '.bufnr(fixture)
+  exe 'edit '.fixture
+  Assert getbufline(bufnr(fixture), 1)[0] != lines[0]
+  unlet d
+
 Execute (Clean up for preceding tests):
   unlet dir
   unlet lines
