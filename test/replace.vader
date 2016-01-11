@@ -17,17 +17,17 @@ Before (Initialization for each execution):
   exe 'cd '.dir
 
 Execute (replace#qflisttype works well):
-  silent noautocmd grep! fixture
+  silent noautocmd vimgrep! /fixture/j **/*
   Assert len(getqflist()) == 1
   copen
   Assert replace#qflisttype() == 'quickfix'
-  silent noautocmd lgrep! fixture
+  silent noautocmd lvimgrep! /fixture/j **/*
   Assert len(getloclist(0)) == 1
   lopen
   Assert replace#qflisttype() == 'location'
 
 Execute (replace#Replace works well for quickfix-list):
-  silent noautocmd grep! fixture
+  silent noautocmd vimgrep! /fixture/j **/*
   Assert len(getqflist()) == 1
   copen
   let old = 'fixture'
@@ -39,7 +39,7 @@ Execute (replace#Replace works well for quickfix-list):
   unlet new
 
 Execute (replace#Replace works well for location-list):
-  silent noautocmd lgrep! fixture
+  silent noautocmd lvimgrep! /fixture/j **/*
   Assert len(getloclist(0)) == 1
   lopen
   let old = 'fixture'
@@ -51,7 +51,7 @@ Execute (replace#Replace works well for location-list):
   unlet new
 
 Execute (replace#Replace fails for modified buffers):
-  silent noautocmd grep! fixture
+  silent noautocmd vimgrep! /fixture/j **/*
   Assert len(getqflist()) == 1
   exe 'buffer '.fixture
   call setbufvar(fixture, '&modified', 1)
@@ -60,7 +60,7 @@ Execute (replace#Replace fails for modified buffers):
   Assert getbufline(bufnr(fixture), 1)[0] == lines[0]
 
 Execute (replace#Replace fails for buffers not modifiable):
-  silent noautocmd grep! fixture
+  silent noautocmd vimgrep! /fixture/j **/*
   Assert len(getqflist()) == 1
   exe 'buffer '.bufnr(fixture)
   call setbufvar(bufnr(fixture), '&modifiable', 0)
@@ -69,14 +69,14 @@ Execute (replace#Replace fails for buffers not modifiable):
   Assert getbufline(bufnr(fixture), 1)[0] == lines[0]
 
 Execute (replace#Replace fails for buffers not existing any more):
-  silent noautocmd grep! fixture
+  silent noautocmd vimgrep! /fixture/j **/*
   Assert len(getqflist()) == 1
   call delete(fixture)
   copen
   AssertThrows call replace#Replace(1, 0, 'fixture', 'fixed asset')
 
 Execute (replace#Replace fails for buffers changed after grep):
-  silent noautocmd grep! fixture
+  silent noautocmd vimgrep! /fixture/j **/*
   Assert len(getqflist()) == 1
   exe 'edit '.fixture
   normal! gg^ciwthis
