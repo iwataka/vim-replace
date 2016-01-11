@@ -85,10 +85,12 @@ Execute (replace#Replace fails for buffers changed after grep):
   exe 'edit '.fixture
   normal! gg^ciwthis
   write
+  let result = getbufline(bufnr(fixture), 1)[0]
   copen
   AssertThrows call replace#Replace(1, 0, 'fixture', 'fixed asset')
-  Assert getbufline(bufnr(fixture), 1)[0] == lines[0],
+  Assert getbufline(bufnr(fixture), 1)[0] == result,
         \ 'Illegal replacement occured'
+  unlet result
 
 Execute (replace#Replace can replace special characters):
   let d = {}
