@@ -19,13 +19,14 @@ fu! replace#qflisttype() abort
     redir => bufinfo
     silent file
     redir END
-    if bufinfo =~# '^.*\[Quickfix List\].*$'
-      return 'quickfix'
-    elseif bufinfo =~# '^.*\[Location List\].*$' 
-      return 'location'
-    else
-      throw 'The current buffer is neither quickfix-list nor location-list'
+    if &ft == 'qf'
+      if bufinfo =~# '^.*\[Quickfix.*\].*$'
+        return 'quickfix'
+      else
+        return 'location'
+      endif
     endif
+    throw 'The current buffer is neither quickfix-list nor location-list'
   endif
 endfu
 
