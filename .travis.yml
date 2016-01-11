@@ -10,3 +10,6 @@ script: |
   source autoload/replace.vim
   filetype plugin indent on
   VIMRC) -c 'Vader! test/*' > /dev/null
+
+notifications:
+  email: false
