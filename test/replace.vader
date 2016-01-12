@@ -1,11 +1,18 @@
 Execute (Prepare for following tests):
   let dir = expand('<sfile>:p:h').'/fixture'
-  let lines = ['This is a fixture containing special characters \\\.']
+  let lines = [
+        \ 'This is a fixture containing special characters \\\.',
+        \ 'The directory in which this exists is also named `fixture`.'
+        \ ]
   let fixture = dir.'/fixture.txt'
   if !isdirectory(dir)
     call mkdir(dir)
   endif
+  let old = 'fixture'
+  let new = 'fixed asset'
+  let item_num = 2
   let cwd = getcwd()
+  " If autoread is not set, prompt may be shown by executing checktime command.
   let autoread = &autoread
   set autoread
 
@@ -18,76 +25,78 @@ Before (Initialization for each execution):
 
 Execute (replace#qflisttype works well):
   silent noautocmd vimgrep! /fixture/j **/*
-  Assert len(getqflist()) == 1, 'Wrong number of items in quickfix-list'
+  Assert len(getqflist()) == item_num, 'Wrong number of items in quickfix-list'
   copen
   Assert replace#qflisttype() == 'quickfix', 'Detection for quickfix-list failed'
   silent noautocmd lvimgrep! /fixture/j **/*
-  Assert len(getloclist(0)) == 1, 'Wrong number of items in location-list'
+  Assert len(getloclist(0)) == item_num, 'Wrong number of items in location-list'
   lopen
   Assert replace#qflisttype() == 'location', 'Detection for location-list failed'
 
 Execute (replace#Replace works well for quickfix-list):
   silent noautocmd vimgrep! /fixture/j **/*
-  Assert len(getqflist()) == 1, 'Wrong number of items in quickfix-list'
+  Assert len(getqflist()) == item_num, 'Wrong number of items in quickfix-list'
   copen
-  let old = 'fixture'
-  let new = 'fixed asset'
   call replace#Replace(1, 0, old, new)
   exe 'edit '.fixture
   Assert getbufline(bufnr('%'), 1)[0] == substitute(lines[0], old, new, 'g'),
         \ 'Replacement failed'
-  unlet old
-  unlet new
 
 Execute (replace#Replace works well for location-list):
   silent noautocmd lvimgrep! /fixture/j **/*
-  Assert len(getloclist(0)) == 1, 'Wrong number of items in quickfix-list'
+  Assert len(getloclist(0)) == item_num, 'Wrong number of items in quickfix-list'
   lopen
-  let old = 'fixture'
-  let new = 'fixed asset'
   call replace#Replace(1, 0, old, new)
   exe 'edit '.fixture
   Assert getbufline(bufnr('%'), 1)[0] == substitute(lines[0], old, new, 'g'),
         \ 'Replacement failed'
-  unlet old
-  unlet new
+
+Execute (replace#Replace can narrow items for replacement):
+  silent noautocmd vimgrep! /fixture/j **/*
+  Assert len(getqflist()) == item_num, 'Wrong number of items in quickfix-list'
+  copen
+  call replace#Replace(1, 1, old, new)
+  exe 'edit '.fixture
+  Assert getbufline(bufnr('%'), 1)[0] == substitute(lines[0], old, new, 'g'),
+        \ 'Replacement failed'
+  Assert getbufline(bufnr('%'), 2)[0] == lines[1], 'Failed to narrow'
 
 Execute (replace#Replace fails for modified buffers):
   silent noautocmd vimgrep! /fixture/j **/*
-  Assert len(getqflist()) == 1, 'Wrong number of items in quickfix-list'
-  exe 'buffer '.fixture
+  Assert len(getqflist()) == item_num, 'Wrong number of items in quickfix-list'
+  exe 'edit '.fixture
   call setbufvar(fixture, '&modified', 1)
   copen
-  AssertThrows call replace#Replace(1, 0, 'fixture', 'fixed asset')
+  AssertThrows call replace#Replace(1, 0, old, new)
   Assert getbufline(bufnr(fixture), 1)[0] == lines[0],
         \ 'Illegal replacement occured'
 
 Execute (replace#Replace fails for buffers not modifiable):
   silent noautocmd vimgrep! /fixture/j **/*
-  Assert len(getqflist()) == 1, 'Wrong number of items in quickfix-list'
-  exe 'buffer '.bufnr(fixture)
+  Assert len(getqflist()) == item_num, 'Wrong number of items in quickfix-list'
+  exe 'edit '.fixture
   call setbufvar(bufnr(fixture), '&modifiable', 0)
   copen
-  AssertThrows call replace#Replace(1, 0, 'fixture', 'fixed asset')
+  AssertThrows call replace#Replace(1, 0, old, new)
   Assert getbufline(bufnr(fixture), 1)[0] == lines[0],
         \ 'Illegal replacement occured'
 
 Execute (replace#Replace fails for buffers not existing any more):
   silent noautocmd vimgrep! /fixture/j **/*
-  Assert len(getqflist()) == 1, 'Wrong number of items in quickfix-list'
+  Assert len(getqflist()) == item_num, 'Wrong number of items in quickfix-list'
   call delete(fixture)
   copen
-  AssertThrows call replace#Replace(1, 0, 'fixture', 'fixed asset')
+  AssertThrows call replace#Replace(1, 0, old, new)
 
 Execute (replace#Replace fails for buffers changed after grep):
   silent noautocmd vimgrep! /fixture/j **/*
-  Assert len(getqflist()) == 1, 'Wrong number of items in quickfix-list'
+  Assert len(getqflist()) == item_num, 'Wrong number of items in quickfix-list'
   exe 'edit '.fixture
   normal! gg^ciwthis
   write
   let result = getbufline(bufnr(fixture), 1)[0]
   copen
-  AssertThrows call replace#Replace(1, 0, 'fixture', 'fixed asset')
+  AssertThrows call replace#Replace(1, 0, old, new)
   Assert getbufline(bufnr(fixture), 1)[0] == result,
         \ 'Illegal replacement occured'
   unlet result
@@ -121,6 +130,9 @@ Execute (Clean up for preceding tests):
   unlet lines
   unlet fixture
   exe 'cd '.cwd
+  unlet old
+  unlet new
+  unlet item_num
   unlet cwd
   let &autoread = autoread
   unlet autoread
